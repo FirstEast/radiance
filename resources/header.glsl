@@ -24,8 +24,11 @@ uniform float iFPS;
 // Output of the previous pattern
 uniform sampler2D iFrame;
 
-// Previous outputs of the other channels (e.g. foo.1.glsl) 
+// Previous outputs of the other channels (e.g. foo.1.glsl)
 uniform sampler2D iChannel[3];
+
+// Image
+uniform sampler2D iImage;
 
 #define M_PI 3.1415926535897932384626433832795
 

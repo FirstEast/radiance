@@ -31,7 +31,7 @@ CFGSECTION(ui,
     CFG(strip_thickness, FLOAT, 0.05)
     CFG(point_thickness, FLOAT, 0.01)
 )
- 
+
 CFGSECTION(deck,
     CFG(n_patterns, INT, 100)
 )
@@ -40,6 +40,10 @@ CFGSECTION(pattern,
     CFG(master_width, INT, 100)
     CFG(master_height, INT, 100)
     CFG(dir, STRING, "resources/patterns/")
+)
+
+CFGSECTION(images,
+    CFG(dir, STRING, "resources/images/")
 )
 
 CFGSECTION(audio,
@@ -53,7 +57,7 @@ CFGSECTION(audio,
 CFGSECTION(paths,
     CFG(params_config, STRING, "resources/params.ini")
 )
- 
+
 #undef CFGSECTION
 #undef CFGSECTION_LIST
 #undef CFG

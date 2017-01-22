@@ -8,6 +8,9 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <IL/il.h>
+#include <IL/ilu.h>
+#include <IL/ilut.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +19,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <math.h>
+
+static bool il_initted = false;
 
 int pattern_init(struct pattern * pattern, const char * prefix) {
     GLenum e;
@@ -44,9 +49,68 @@ int pattern_init(struct pattern * pattern, const char * prefix) {
     }
 
     if(n == 0) {
-        ERROR("Could not find any shaders for %s", prefix);
-        return 1;
+        ERROR("Could not find any shaders for %s, trying to load an image", prefix);
+
+        // Now try to load an image
+        char * filename;
+        filename = rsprintf("%s%s", config.images.dir, prefix);
+        if (filename == NULL) MEMFAIL();
+
+        if (!il_initted) {
+            // See http://openil.sourceforge.net/docs/DevIL%20Manual.pdf for this sequence
+            ilInit();
+            iluInit();
+            ilutRenderer(ILUT_OPENGL);
+
+            il_initted = true;
+        }
+
+        // Give ourselves an image name to bind to.
+        ILuint image_info;
+        ilGenImages(1, &image_info);
+        ilBindImage(image_info);
+
+        if (!ilLoadImage(filename)) {
+            ERROR("Could not load image: %s", iluErrorString(ilGetError()));
+        }
+
+        pattern->n_frames = ilGetInteger(IL_NUM_IMAGES) + 1;
+        INFO("Found %d frames in image %s", pattern->n_frames, prefix);
+
+        pattern->frames = calloc(pattern->n_frames, sizeof *pattern->frames);
+
+        ILenum bindError;
+
+        for (int i = 0; i < pattern->n_frames; i++) {
+            // It's really important to call this each time or it has trouble loading frames (I suspect
+            // this is resetting a pointer into an array of frames somewhere)
+            ilBindImage(image_info);
+
+            if (ilActiveImage(i) == IL_FALSE) {
+                ERROR("Error setting active frame %d of image: %s", i, iluErrorString(ilGetError()));
+
+                return -1;
+            }
+
+            pattern->frames[i] = ilutGLBindTexImage();
+
+            bindError = ilGetError();
+            if (bindError != IL_NO_ERROR) {
+                ERROR("Error binding frame %d of image: %s", i, iluErrorString(bindError));
+                return -1;
+            }
+        }
+
+        INFO("Succcessfully loaded image %s", prefix);
+
+        // Now that it's been loaded into OpenGL delete it.
+        ilDeleteImages(1, &image_info);
+
+        pattern->current_frame = 0;
+
+        n = 1;
     }
+
     pattern->n_shaders = n;
 
     pattern->shader = calloc(pattern->n_shaders, sizeof *pattern->shader);
@@ -57,7 +121,11 @@ int pattern_init(struct pattern * pattern, const char * prefix) {
     bool success = true;
     for(int i = 0; i < pattern->n_shaders; i++) {
         char * filename;
-        filename = rsprintf("%s%s.%d.glsl", config.pattern.dir, prefix, i);
+        if (pattern->frames) {
+            filename = rsprintf("%simage.0.glsl", config.pattern.dir);
+        } else {
+            filename = rsprintf("%s%s.%d.glsl", config.pattern.dir, prefix, i);
+        }
         if(filename == NULL) MEMFAIL();
 
         GLhandleARB h = load_shader(filename);
@@ -91,7 +159,7 @@ int pattern_init(struct pattern * pattern, const char * prefix) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, config.pattern.master_width, config.pattern.master_height, 0, 
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, config.pattern.master_width, config.pattern.master_height, 0,
                      GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     }
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -130,6 +198,14 @@ void pattern_term(struct pattern * pattern) {
     if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 
     free(pattern->name);
+
+    if (pattern->frames) {
+        // Free the textures pointed to by the array
+        glDeleteTextures(pattern->n_frames, pattern->frames);
+        // Free the array itself
+        free(pattern->frames);
+    }
+
     memset(pattern, 0, sizeof *pattern);
 }
 
@@ -180,6 +256,21 @@ void pattern_render(struct pattern * pattern, GLuint input_tex) {
         loc = glGetUniformLocationARB(pattern->shader[i], "iChannel");
         glUniform1ivARB(loc, pattern->n_shaders, pattern->uni_tex);
 
+        if (pattern->frames) {
+            int texture_index = pattern->n_shaders + 1;
+            glActiveTexture(GL_TEXTURE0 + texture_index);
+            glBindTexture(GL_TEXTURE_2D, pattern->frames[pattern->current_frame]);
+
+            loc = glGetUniformLocationARB(pattern->shader[i], "iImage");
+            glUniform1iARB(loc, texture_index);
+
+            // TODO: Should do something interesting off of beat_frac and beat_index
+            // to make the animation go faster/slower depending on the music
+            if (pattern->last_ms / RADIANCE_PATTERN_GIF_SPEED != time_master.wall_ms / RADIANCE_PATTERN_GIF_SPEED) {
+                pattern->current_frame = (pattern->current_frame + 1) % pattern->n_frames;
+            }
+        }
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, input_tex);
 
@@ -200,4 +291,6 @@ void pattern_render(struct pattern * pattern, GLuint input_tex) {
 
     if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
     pattern->tex_output = pattern->tex[pattern->flip];
+
+    pattern->last_ms = time_master.wall_ms;
 }

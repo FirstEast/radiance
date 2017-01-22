@@ -21,10 +21,11 @@ Build
 - `PortMIDI`
 - `FFTW3`
 - `libsamplerate`
+- `DevIL`
 
 Install dependencies on Ubuntu:
 
-    $ sudo apt-get install libsdl2-dev libgl1-mesa-dev libsdl2-ttf-dev libportmidi-dev libfftw3-dev libsamplerate0-dev
+    $ sudo apt-get install libsdl2-dev libgl1-mesa-dev libsdl2-ttf-dev libportmidi-dev libfftw3-dev libsamplerate0-dev libdevil-dev
 
 Note: you may need to install a newer version of portaudio.
 
@@ -43,7 +44,7 @@ If you have issues building after pulling, try `make clean`.
 Configuration
 -------------
 
-Resources accessed at run-time are stored in the `resources/` folder relative to the current directory. 
+Resources accessed at run-time are stored in the `resources/` folder relative to the current directory.
 
 ### Main Config: `resources/config.ini
 
@@ -80,12 +81,12 @@ Defines the filters that are applied to extract the highs, mids, lows, levels an
 Defines file paths for where to find other configuration files.
 
 - `output_config` - Setup of output devices, e.g. LED strips
-- `midi_config` - MIDI controller mappings. 
+- `midi_config` - MIDI controller mappings.
 - `decks_config` - List of pre-defined pattern decks
 
 #### `[debug]`
 
-Debug parameters. Right now has `loglevel`, which sets the lowest loglevel. 
+Debug parameters. Right now has `loglevel`, which sets the lowest loglevel.
 
 Example: set `loglevel=2` to suppress `DEBUG` messages. `loglevel=4` only shows `ERROR`/`FATAL` messages. `loglevel=0` shows all.
 
@@ -101,7 +102,7 @@ Global lux configuration, currently just `timeout_ms`, which specifies the numbe
 
 #### `[section_sizes]`
 
-The *maximum* number of entries of each type has to specified in this section. 
+The *maximum* number of entries of each type has to specified in this section.
 
 #### `[lux_channel_##]`
 
@@ -138,7 +139,7 @@ This file contains a list of all of the supported MIDI controllers and how to ma
 
 #### `[section_sizes]`
 
-The *maximum* number of entries of each type has to specified in this section. 
+The *maximum* number of entries of each type has to specified in this section.
 
 #### `[controller_##]`
 
@@ -180,7 +181,7 @@ Keyboard Shortcuts
 - `W` - Append current deck state to the `decks.ini` file
 
 ### Loading Patterns
-Hitting colon (`:`) when a pattern is selected brings up a textbox to enter a pattern name. 
+Hitting colon (`:`) when a pattern is selected brings up a textbox to enter a pattern name.
 This can be used to do 3 things:
 
 - Typing the name of a pattern (ex. `vu`) then hitting Enter causes the named pattern to be loaded into the highlighed slot.
@@ -193,109 +194,109 @@ Patterns
 ### Full List
 (Generated with ``$ head -n1 resources/patterns/*.0.glsl | xargs -d\n -n3 echo | grep '== //' | sed -e 's|==> \(.*\).0.glsl <== // \(.*\)$|- `\1` - \2|'`` )
 
-- `allwhite` - Basic white fill 
-- `black` - Reduce alpha 
-- `bounce` - Zoom in (bounce) to the beat & audio 
-- `bstrobe` - Full black strobe. Intensity increases frequency 
-- `bwave` - Black sine wave from left to right. 
-- `circle` - Yellow blob that spins to the beat 
-- `cyan` - Cyan diagonal stripes 
-- `desat` - Desaturate (make white) 
-- `desatb` - Desaturate to the beat 
-- `diodelpf` - Apply smoothing over time with new hits happening instantly 
-- `distort` - Distort the screen to the beat 
-- `dwwave` - Diagonal white wave 
-- `edge` - Spatial edge detect filter (HPF) 
-- `edgy` - Fake edge detection based only on alpha 
-- `fire` - Fire from the bottom 
-- `fireball` - Fileball in the center 
-- `flow` - Radiate color from the center based on audio 
-- `foh` - First order (expontential) hold 
-- `heart` - Pink heart 
-- `hue` - Shift the color in HSV space 
-- `lpf` - Smooth output 
-- `pink` - Pink polka dots 
-- `pixelate` - Pixelate/quantize the output 
-- `polar` - Convert vertical lines to rings 
-- `posterize` - Reduce number of colors 
-- `purple` - Organic purple waves 
-- `qcircle` - Big purple soft circle  
-- `rainbow` - Cycle the color (in HSV) over time 
-- `red` - Change the color (in HSV) to red 
-- `resat` - Recolor output with noise rainbow 
-- `rjump` - Shift the hue on the beat 
-- `rotate` - Rotate the screen 
-- `slide` - Slide the screen left-to-right 
+- `allwhite` - Basic white fill
+- `black` - Reduce alpha
+- `bounce` - Zoom in (bounce) to the beat & audio
+- `bstrobe` - Full black strobe. Intensity increases frequency
+- `bwave` - Black sine wave from left to right.
+- `circle` - Yellow blob that spins to the beat
+- `cyan` - Cyan diagonal stripes
+- `desat` - Desaturate (make white)
+- `desatb` - Desaturate to the beat
+- `diodelpf` - Apply smoothing over time with new hits happening instantly
+- `distort` - Distort the screen to the beat
+- `dwwave` - Diagonal white wave
+- `edge` - Spatial edge detect filter (HPF)
+- `edgy` - Fake edge detection based only on alpha
+- `fire` - Fire from the bottom
+- `fireball` - Fileball in the center
+- `flow` - Radiate color from the center based on audio
+- `foh` - First order (expontential) hold
+- `heart` - Pink heart
+- `hue` - Shift the color in HSV space
+- `lpf` - Smooth output
+- `pink` - Pink polka dots
+- `pixelate` - Pixelate/quantize the output
+- `polar` - Convert vertical lines to rings
+- `posterize` - Reduce number of colors
+- `purple` - Organic purple waves
+- `qcircle` - Big purple soft circle
+- `rainbow` - Cycle the color (in HSV) over time
+- `red` - Change the color (in HSV) to red
+- `resat` - Recolor output with noise rainbow
+- `rjump` - Shift the hue on the beat
+- `rotate` - Rotate the screen
+- `slide` - Slide the screen left-to-right
 - `spin` - Spins the pattern round not to the beat
 - `spinb` - Spins the pattern round to the beat
-- `smoke` - Perlin noise green smoke 
-- `speckle` - Per-pixel twinkle effect 
-- `starfield` - Pixels radiating from the center 
-- `stripey` - Vertical stripes with a twinkle effect 
-- `strobe` - Strobe alpha to the beat 
+- `smoke` - Perlin noise green smoke
+- `speckle` - Per-pixel twinkle effect
+- `starfield` - Pixels radiating from the center
+- `stripey` - Vertical stripes with a twinkle effect
+- `strobe` - Strobe alpha to the beat
 - `swipe` - Only update a vertical stripe that slides across
-- `test` - A green & red circle in the center 
-- `vu` - Blue vertical VU meter 
-- `wave` - Green and blue base pattern 
-- `wstrobe` - White strobe to the beat 
-- `wwave` - White wave with hard edges 
-- `yellow` - Yellow and green vertical waves 
+- `test` - A green & red circle in the center
+- `vu` - Blue vertical VU meter
+- `wave` - Green and blue base pattern
+- `wstrobe` - White strobe to the beat
+- `wwave` - White wave with hard edges
+- `yellow` - Yellow and green vertical waves
 - `zoh` - Zero order hold to the beat
 
 #### Base patterns
 
 These patterns produce something visually interesting without anything below them.
 
-- `allwhite` - Basic white fill 
-- `circle` - Yellow blob that spins to the beat 
-- `cyan` - Cyan diagonal stripes 
-- `dwwave` - Diagonal white wave 
-- `fire` - Fire from the bottom 
-- `fireball` - Fileball in the center 
-- `heart` - Pink heart 
-- `pink` - Pink polka dots 
-- `purple` - Organic purple waves 
-- `qcircle` - Big purple soft circle  
-- `smoke` - Perlin noise green smoke 
-- `test` - A green & red circle in the center 
-- `vu` - Blue vertical VU meter 
-- `wave` - Green and blue base pattern 
-- `wstrobe` - White strobe to the beat 
-- `wwave` - White wave with hard edges 
-- `yellow` - Yellow and green vertical waves 
+- `allwhite` - Basic white fill
+- `circle` - Yellow blob that spins to the beat
+- `cyan` - Cyan diagonal stripes
+- `dwwave` - Diagonal white wave
+- `fire` - Fire from the bottom
+- `fireball` - Fileball in the center
+- `heart` - Pink heart
+- `pink` - Pink polka dots
+- `purple` - Organic purple waves
+- `qcircle` - Big purple soft circle
+- `smoke` - Perlin noise green smoke
+- `test` - A green & red circle in the center
+- `vu` - Blue vertical VU meter
+- `wave` - Green and blue base pattern
+- `wstrobe` - White strobe to the beat
+- `wwave` - White wave with hard edges
+- `yellow` - Yellow and green vertical waves
 
 These patterns are a subset of the above and most commonly used as the first pattern in a deck.
 
-- `cyan` - Cyan diagonal stripes 
-- `fire` - Fire from the bottom 
-- `fireball` - Fileball in the center 
-- `heart` - Pink heart 
-- `pink` - Pink polka dots 
-- `purple` - Organic purple waves 
-- `smoke` - Perlin noise green smoke 
-- `test` - A green & red circle in the center 
-- `vu` - Blue vertical VU meter 
-- `wave` - Green and blue base pattern 
-- `yellow` - Yellow and green vertical waves 
+- `cyan` - Cyan diagonal stripes
+- `fire` - Fire from the bottom
+- `fireball` - Fileball in the center
+- `heart` - Pink heart
+- `pink` - Pink polka dots
+- `purple` - Organic purple waves
+- `smoke` - Perlin noise green smoke
+- `test` - A green & red circle in the center
+- `vu` - Blue vertical VU meter
+- `wave` - Green and blue base pattern
+- `yellow` - Yellow and green vertical waves
 
 #### Tail patterns
 
 These patterns reduce visual complexity, or at least provide smoothing.
 
-- `desat` - Desaturate (make white) 
-- `desatb` - Desaturate to the beat 
-- `diodelpf` - Apply smoothing over time with new hits happening instantly 
-- `edge` - Spatial edge detect filter (HPF) 
-- `edgy` - Fake edge detection based only on alpha 
-- `flow` - Radiate color from the center based on audio 
-- `foh` - First order (expontential) hold 
-- `lpf` - Smooth output 
-- `pixelate` - Pixelate/quantize the output 
+- `desat` - Desaturate (make white)
+- `desatb` - Desaturate to the beat
+- `diodelpf` - Apply smoothing over time with new hits happening instantly
+- `edge` - Spatial edge detect filter (HPF)
+- `edgy` - Fake edge detection based only on alpha
+- `flow` - Radiate color from the center based on audio
+- `foh` - First order (expontential) hold
+- `lpf` - Smooth output
+- `pixelate` - Pixelate/quantize the output
 - `posterize` - Reduce number of colors  (Note: looks bad on strips!)
-- `red` - Change the color (in HSV) to red 
-- `speckle` - Per-pixel twinkle effect 
-- `starfield` - Pixels radiating from the center 
-- `stripey` - Vertical stripes with a twinkle effect 
+- `red` - Change the color (in HSV) to red
+- `speckle` - Per-pixel twinkle effect
+- `starfield` - Pixels radiating from the center
+- `stripey` - Vertical stripes with a twinkle effect
 - `zoh` - Zero order hold to the beat
 
 
