@@ -2,18 +2,38 @@ PROJECT = radiance
 #CC = gcc
 #CC = clang
 
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	__LINUX__ = true
+	CFLAGS = -D__LINUX__
+	RADIANCE_LUX = true
+endif
+ifeq ($(UNAME_S),Darwin)
+	__APPLE__ = true
+	CFLAGS = -Wno-deprecated-declarations
+endif
+
 # Source files
 C_SRC  = main.c
 C_SRC += $(wildcard audio/*.c)
 C_SRC += $(wildcard midi/*.c)
-C_SRC += $(wildcard output/*.c)
+# We'll add back output/lux.c later below if appropriate
+C_SRC += $(filter-out output/lux.c, $(wildcard output/*.c))
 C_SRC += $(wildcard pattern/*.c)
 C_SRC += $(wildcard time/*.c)
 C_SRC += $(wildcard ui/*.c)
-C_SRC += $(wildcard util/*.c)
-
-C_SRC += liblux/lux.c liblux/crc.c
+# We'll add back util/opengl.c later below if appropriate
+C_SRC += $(filter-out util/opengl.c, $(wildcard util/*.c))
 C_SRC += $(wildcard BTrack/src/*.c)
+
+ifdef __APPLE__
+	C_SRC += util/opengl.c
+endif
+
+ifdef RADIANCE_LUX
+	C_SRC += output/lux.c
+	C_SRC += liblux/lux.c liblux/crc.c
+endif
 
 OBJDIR = build
 $(shell mkdir -p $(OBJDIR) >/dev/null)
@@ -22,9 +42,14 @@ OBJECTS = $(C_SRC:%.c=$(OBJDIR)/%.o)
 # Compiler flags
 INC = -I.
 
-LIBRARIES = -lSDL2 -lSDL2_ttf -lGL -lGLU -lm -lportaudio -lportmidi -lfftw3 -lsamplerate
+LIBRARIES = -lSDL2 -lSDL2_ttf -lm -lportaudio -lportmidi -lfftw3 -lsamplerate
+ifdef __LINUX__
+	LIBRARIES += -lGL -lGLU
+else
+	LIBRARIES += -framework OpenGL
+endif
 
-CFLAGS = -std=c99 -ggdb3 -O3 $(INC)
+CFLAGS += -std=c99 -ggdb3 -O3 $(INC)
 CFLAGS += -Wall -Wextra -Werror -Wno-unused-parameter
 CFLAGS += -D_POSIX_C_SOURCE=20160524
 LFLAGS = $(CFLAGS)
@@ -50,12 +75,16 @@ $(OBJDIR)/%.o: %.c
 luxctl: $(OBJDIR)/luxctl.o $(OBJDIR)/liblux/lux.o $(OBJDIR)/liblux/crc.o
 	$(CC) $(LFLAGS) -o $@ $^ 
 
+ifdef RADIANCE_LUX
+	MAYBE_LUXCTL = luxctl
+endif
+
 .PHONY: all
-all: $(PROJECT) luxctl
+all: $(PROJECT) $(MAYBE_LUXCTL)
 
 .PHONY: clean
 clean:
-	-rm -f $(PROJECT) tags luxctl
+	-rm -f $(PROJECT) tags $(MAYBE_LUXCTL)
 	-rm -rf $(OBJDIR) $(DEPDIR)
 
 tags: $(C_SRC)

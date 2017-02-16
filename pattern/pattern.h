@@ -2,7 +2,7 @@
 
 #define GL_GLEXT_PROTOTYPES
 #include <SDL2/SDL_opengl.h>
-#include <GL/glu.h>
+#include "util/opengl.h"
 #include <stdbool.h>
 
 #define MAX_INTEGRAL 1024

@@ -19,7 +19,7 @@ void deck_init(struct deck * deck) {
 
     glGenTextures(1, &deck->tex_input);
     glGenFramebuffersEXT(1, &deck->fb_input);
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 
     glBindTexture(GL_TEXTURE_2D, deck->tex_input);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -28,7 +28,7 @@ void deck_init(struct deck * deck) {
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, config.pattern.master_width, config.pattern.master_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glBindTexture(GL_TEXTURE_2D, 0);
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, deck->fb_input);
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D,
@@ -36,7 +36,7 @@ void deck_init(struct deck * deck) {
     glClear(GL_COLOR_BUFFER_BIT);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 }
 
 void deck_term(struct deck * deck) {

@@ -77,13 +77,13 @@ int pattern_init(struct pattern * pattern, const char * prefix) {
         return 2;
     }
 
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 
     // Render targets
     glGenFramebuffersEXT(1, &pattern->fb);
     glGenTextures(pattern->n_shaders + 1, pattern->tex);
 
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 
     for(int i = 0; i < pattern->n_shaders + 1; i++) {
         glBindTexture(GL_TEXTURE_2D, pattern->tex[i]);
@@ -96,7 +96,7 @@ int pattern_init(struct pattern * pattern, const char * prefix) {
     }
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pattern->fb);
     for(int i = 0; i < pattern->n_shaders + 1; i++) {
@@ -105,7 +105,7 @@ int pattern_init(struct pattern * pattern, const char * prefix) {
         glClear(GL_COLOR_BUFFER_BIT);
     }
 
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 
     // Some OpenGL API garbage
     pattern->uni_tex = calloc(pattern->n_shaders, sizeof *pattern->uni_tex);
@@ -127,7 +127,7 @@ void pattern_term(struct pattern * pattern) {
     glDeleteTextures(pattern->n_shaders + 1, pattern->tex);
     glDeleteFramebuffersEXT(1, &pattern->fb);
 
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 
     free(pattern->name);
     memset(pattern, 0, sizeof *pattern);
@@ -154,7 +154,7 @@ void pattern_render(struct pattern * pattern, GLuint input_tex) {
         glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D,
                                   pattern->tex[(pattern->flip + i + 1) % (pattern->n_shaders + 1)], 0);
 
-        if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+        if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 
         GLint loc;
         loc = glGetUniformLocationARB(pattern->shader[i], "iTime");
@@ -183,7 +183,7 @@ void pattern_render(struct pattern * pattern, GLuint input_tex) {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, input_tex);
 
-        if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+        if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 
         glClear(GL_COLOR_BUFFER_BIT);
         glBegin(GL_QUADS);
@@ -193,11 +193,11 @@ void pattern_render(struct pattern * pattern, GLuint input_tex) {
         glVertex2d(1, -1);
         glEnd();
 
-        if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+        if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
     }
     pattern->flip = (pattern->flip + 1) % (pattern->n_shaders + 1);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
     pattern->tex_output = pattern->tex[pattern->flip];
 }

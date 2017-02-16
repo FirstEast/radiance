@@ -81,17 +81,22 @@ GLhandleARB load_shader(const char * filename) {
     // Compile
     GLhandleARB fragmentShaderObj;
     fragmentShaderObj = glCreateShaderObjectARB(GL_FRAGMENT_SHADER);
+    // The two are effectively the same except for signed/unsigned, but Mac GCC complains
+    // if we're not careful about passing to ARB/mainline functions.  The whole thing
+    // should probably just be switched over to the mainline functions at some point.
+    GLuint fragmentShader = (GLuint) fragmentShaderObj;
+
     glShaderSourceARB(fragmentShaderObj, 1, (const GLcharARB **)&buffer, (const GLint *)&length);
-    glCompileShader(fragmentShaderObj);
-    glGetShaderiv(fragmentShaderObj, GL_COMPILE_STATUS, &compiled);
+    glCompileShader(fragmentShader);
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &compiled);
     if(!compiled) {
         GLint blen = 0; 
         GLsizei slen = 0;
 
-        glGetShaderiv(fragmentShaderObj, GL_INFO_LOG_LENGTH , &blen);
+        glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH , &blen);
         if(blen > 1) {
             GLchar* compiler_log = (GLchar*)calloc(blen, 1);
-            glGetShaderInfoLog(fragmentShaderObj, blen, &slen, compiler_log);
+            glGetShaderInfoLog(fragmentShader, blen, &slen, compiler_log);
             load_shader_error = rsprintf("Shader compilation failed, Log:\n%s", compiler_log);
             free(compiler_log);
         } else {
@@ -141,31 +146,32 @@ GLhandleARB load_shader(const char * filename) {
     // Link
     GLhandleARB programObj;
     programObj = glCreateProgramObjectARB();
+    GLuint program = (GLuint) programObj;
     //glAttachShader(programObj, vertexShaderObj);
-    glAttachShader(programObj, fragmentShaderObj);
-    glLinkProgram(programObj);
+    glAttachShader(program, fragmentShader);
+    glLinkProgram(program);
 
     GLint linked;
-    glGetProgramiv(programObj, GL_LINK_STATUS, &linked);
+    glGetProgramiv(program, GL_LINK_STATUS, &linked);
     if(!linked) {
         GLint blen = 0; 
         GLsizei slen = 0;
 
-        glGetProgramiv(programObj, GL_INFO_LOG_LENGTH , &blen);
+        glGetProgramiv(program, GL_INFO_LOG_LENGTH , &blen);
         if(blen > 1) {
             GLchar* linker_log = (GLchar*)calloc(blen, 1);
-            glGetProgramInfoLog(programObj, blen, &slen, linker_log);
+            glGetProgramInfoLog(program, blen, &slen, linker_log);
             load_shader_error = rsprintf("Shader linking failed; Log:\n%s", linker_log);
             free(linker_log);
         } else {
             load_shader_error = strdup("Shader linking failed!");
         }
-        glDetachShader(programObj, fragmentShaderObj);
+        glDetachShader(program, fragmentShader);
         glDeleteObjectARB(fragmentShaderObj);
         glDeleteObjectARB(programObj);
         return 0;
     }
-    glDetachShader(programObj, fragmentShaderObj);
-    glDeleteShader(fragmentShaderObj);
+    glDetachShader(program, fragmentShader);
+    glDeleteShader(fragmentShader);
     return programObj;
 }

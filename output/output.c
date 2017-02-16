@@ -8,22 +8,31 @@
 #include "output/output.h"
 #include "output/config.h"
 #include "output/slice.h"
-#include "output/lux.h"
+#ifdef RADIANCE_LUX
+    #include "output/lux.h"
+#endif
 
 static volatile int output_running;
 static volatile int output_refresh_request = false;
 static SDL_Thread * output_thread;
 static struct render * render = NULL;
-static bool output_on_lux = false;
+
+#ifdef RADIANCE_LUX
+    static bool output_on_lux = false;
+#endif
 
 static int output_reload_devices() {
     // Tear down
-    if (output_on_lux) {
-        output_lux_term();
-    }
+    #ifdef RADIANCE_LUX
+        if (output_on_lux) {
+            output_lux_term();
+        }
+    #endif
 
     // Reload configuration
-    output_on_lux = false;
+    #ifdef RADIANCE_LUX
+        output_on_lux = false;
+    #endif
     int rc = output_config_load(&output_config, params.paths.output_config);
     if (rc < 0) {
         ERROR("Unable to load output configuration");
@@ -31,11 +40,13 @@ static int output_reload_devices() {
     }
 
     // Initialize
-    if (output_config.lux.enabled) {
-        int rc = output_lux_init();
-        if (rc < 0) PERROR("Unable to initialize lux");
-        else output_on_lux = true;
-    }
+    #ifdef RADIANCE_LUX
+        if (output_config.lux.enabled) {
+            int rc = output_lux_init();
+            if (rc < 0) PERROR("Unable to initialize lux");
+            else output_on_lux = true;
+        }
+    #endif
 
     return 0;
 }
@@ -67,12 +78,14 @@ int output_run(void * args) {
         int rc = output_render(render);
         if (rc < 0) PERROR("Unable to render");
 
-        if (output_on_lux) {
-            int rc = output_lux_prepare_frame();
-            if (rc < 0) PERROR("Unable to prepare lux frame");
-            rc = output_lux_sync_frame();
-            if (rc < 0) PERROR("Unable to sync lux frame");
-        }
+        #ifdef RADIANCE_LUX
+            if (output_on_lux) {
+                int rc = output_lux_prepare_frame();
+                if (rc < 0) PERROR("Unable to prepare lux frame");
+                rc = output_lux_sync_frame();
+                if (rc < 0) PERROR("Unable to sync lux frame");
+            }
+        #endif
 
         //SDL_framerateDelay(&fps_manager);
         SDL_Delay(1);
@@ -92,7 +105,9 @@ int output_run(void * args) {
     }
 
     // Destroy output
-    if(output_on_lux) output_lux_term();
+    #ifdef RADIANCE_LUX
+        if(output_on_lux) output_lux_term();
+    #endif
     output_config_del(&output_config);
 
     INFO("Output stopped");

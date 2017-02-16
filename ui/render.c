@@ -13,12 +13,12 @@ void render_init(struct render * render, GLint texture) {
     if(render->pixels == NULL) MEMFAIL();
 
     glGenFramebuffersEXT(1, &render->fb);
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, render->fb);
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, texture, 0);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 
     render->mutex = SDL_CreateMutex();
     if(render->mutex == NULL) FAIL("Could not create mutex: %s\n", SDL_GetError());
@@ -39,7 +39,7 @@ void render_readback(struct render * render) {
         glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
         glReadPixels(0, 0, config.pattern.master_width, config.pattern.master_height, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)render->pixels);
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-        if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+        if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
         SDL_UnlockMutex(render->mutex);
     }
 }

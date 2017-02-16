@@ -18,7 +18,7 @@ void crossfader_init(struct crossfader * crossfader) {
     // Render targets
     glGenFramebuffersEXT(1, &crossfader->fb);
     glGenTextures(1, &crossfader->tex_output);
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 
     glBindTexture(GL_TEXTURE_2D, crossfader->tex_output);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -28,14 +28,14 @@ void crossfader_init(struct crossfader * crossfader) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, config.pattern.master_width, config.pattern.master_height, 0, 
                  GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glBindTexture(GL_TEXTURE_2D, 0);
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, crossfader->fb);
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D,
                               crossfader->tex_output, 0);
     glClear(GL_COLOR_BUFFER_BIT);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 }
 
 void crossfader_term(struct crossfader * crossfader) {
@@ -44,7 +44,7 @@ void crossfader_term(struct crossfader * crossfader) {
     glDeleteTextures(1, &crossfader->tex_output);
     glDeleteFramebuffersEXT(1, &crossfader->fb);
     glDeleteObjectARB(crossfader->shader);
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 
     memset(crossfader, 0, sizeof *crossfader);
 }
@@ -60,7 +60,7 @@ void crossfader_render(struct crossfader * crossfader, GLuint left, GLuint right
     glBindTexture(GL_TEXTURE_2D, left);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, right);
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 
     GLint loc;
     loc = glGetUniformLocationARB(crossfader->shader, "iResolution");
@@ -73,7 +73,7 @@ void crossfader_render(struct crossfader * crossfader, GLuint left, GLuint right
     glUniform1iARB(loc, 1);
     loc = glGetUniformLocationARB(crossfader->shader, "iLeftOnTop");
     glUniform1iARB(loc, crossfader->left_on_top);
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 
     glClear(GL_COLOR_BUFFER_BIT);
     glBegin(GL_QUADS);
@@ -84,7 +84,7 @@ void crossfader_render(struct crossfader * crossfader, GLuint left, GLuint right
     glEnd();
 
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 
     if(crossfader->position == 1.) {
         crossfader->left_on_top = true;

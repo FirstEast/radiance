@@ -17,7 +17,7 @@
 #include "main.h"
 #include <stdio.h>
 #include <stdbool.h>
-#include <GL/glu.h>
+#include "util/opengl.h"
 
 static SDL_Window * window;
 static SDL_GLContext context;
@@ -187,8 +187,8 @@ void ui_init() {
     // Init SDL
     if(SDL_Init(SDL_INIT_VIDEO) < 0) FAIL("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 
     ww = config.ui.window_width;
     wh = config.ui.window_height;
@@ -209,7 +209,20 @@ void ui_init() {
     glMatrixMode(GL_MODELVIEW);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0, 0, 0, 0);
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+
+    // OpenGL starts with GL_INVALID_OPERATION set.  Typically this is cleared by creating a context,
+    // but this doesn't seem to be getting cleared properly on OS X.  I'm guessing this is because
+    // SDL_GL_CreateContext (which is from a different library) isn't clearing it properly.  It doesn't
+    // seem to have any ill affect on operation, and in any event all of the OpenGL UI is getting blown
+    // away soon in favor of Qt.
+    e = glGetError();
+    #ifdef __APPLE__
+        if ((e != GL_NO_ERROR) && (e != GL_INVALID_OPERATION)) {
+    #else
+        if (e != GL_NO_ERROR) {
+    #endif
+        FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
+    }
 
     // Make framebuffers
     glGenFramebuffersEXT(1, &select_fb);
@@ -219,7 +232,7 @@ void ui_init() {
     glGenFramebuffersEXT(1, &spectrum_fb);
     glGenFramebuffersEXT(1, &waveform_fb);
     glGenFramebuffersEXT(1, &strip_fb);
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 
     // Init select texture
     glGenTextures(1, &select_tex);
@@ -242,7 +255,7 @@ void ui_init() {
     pattern_name_height = calloc(config.ui.n_patterns, sizeof(int));
     if(pattern_name_textures == NULL || pattern_name_width == NULL || pattern_name_height == NULL) MEMFAIL();
     glGenTextures(config.ui.n_patterns, pattern_textures);
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
     for(int i = 0; i < config.ui.n_patterns; i++) {
         glBindTexture(GL_TEXTURE_2D, pattern_textures[i]);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -336,7 +349,7 @@ void ui_init() {
     // Done allocating textures & FBOs, unbind and check for errors
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 
     if((blit_shader = load_shader("resources/blit.glsl")) == 0) FAIL("Could not load blit shader!\n%s", load_shader_error);
     if((main_shader = load_shader("resources/ui_main.glsl")) == 0) FAIL("Could not load UI main shader!\n%s", load_shader_error);
@@ -921,7 +934,7 @@ static void ui_render(bool select) {
 
     glDisable(GL_BLEND);
 
-    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", gluErrorString(e));
+    if((e = glGetError()) != GL_NO_ERROR) FAIL("OpenGL error: %s\n", GLU_ERROR_STRING(e));
 }
 
 struct rgba {
