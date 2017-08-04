@@ -53,7 +53,7 @@ int pattern_init(struct pattern * pattern, const char * prefix) {
 
         // Now try to load an image
         char * filename;
-        filename = rsprintf("%s%s", config.images.dir, prefix);
+        filename = rsprintf("%s/%s", config.images.dir, prefix);
         if (filename == NULL) MEMFAIL();
 
         if (!il_initted) {
@@ -72,6 +72,8 @@ int pattern_init(struct pattern * pattern, const char * prefix) {
 
         if (!ilLoadImage(filename)) {
             ERROR("Could not load image: %s", iluErrorString(ilGetError()));
+            free(filename);
+            return -1;
         }
 
         pattern->n_frames = ilGetInteger(IL_NUM_IMAGES) + 1;
@@ -79,9 +81,9 @@ int pattern_init(struct pattern * pattern, const char * prefix) {
 
         pattern->frames = calloc(pattern->n_frames, sizeof *pattern->frames);
 
-        ILenum bindError;
-
         for (int i = 0; i < pattern->n_frames; i++) {
+            ILenum bindError;
+
             // It's really important to call this each time or it has trouble loading frames (I suspect
             // this is resetting a pointer into an array of frames somewhere)
             ilBindImage(image_info);
@@ -95,6 +97,7 @@ int pattern_init(struct pattern * pattern, const char * prefix) {
             pattern->frames[i] = ilutGLBindTexImage();
 
             bindError = ilGetError();
+
             if (bindError != IL_NO_ERROR) {
                 ERROR("Error binding frame %d of image: %s", i, iluErrorString(bindError));
                 return -1;
@@ -107,6 +110,8 @@ int pattern_init(struct pattern * pattern, const char * prefix) {
         ilDeleteImages(1, &image_info);
 
         pattern->current_frame = 0;
+
+        free(filename);
 
         n = 1;
     }
@@ -259,6 +264,7 @@ void pattern_render(struct pattern * pattern, GLuint input_tex) {
         if (pattern->frames) {
             int texture_index = pattern->n_shaders + 1;
             glActiveTexture(GL_TEXTURE0 + texture_index);
+
             glBindTexture(GL_TEXTURE_2D, pattern->frames[pattern->current_frame]);
 
             loc = glGetUniformLocationARB(pattern->shader[i], "iImage");
