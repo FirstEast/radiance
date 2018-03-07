@@ -110,7 +110,7 @@ static const int map_end[19] =   {8,  8,  8,  8,  8,  8,  8,  8,  8,  16, 16, 16
 static int snap_states[19];
 
 // Font
-TTF_Font * font;
+TTF_Font * font = NULL;
 static const SDL_Color font_color = {255, 255, 255, 255};
 
 // Pat entry
@@ -200,7 +200,8 @@ void ui_init() {
     if(SDL_GL_SetSwapInterval(1) < 0) fprintf(stderr, "Warning: Unable to set VSync: %s\n", SDL_GetError());
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if(renderer == NULL) FAIL("Could not create renderer: %s\n", SDL_GetError());
-    if(TTF_Init() < 0) FAIL("Could not initialize font library: %s\n", TTF_GetError());
+    if(TTF_Init() < 0) FAIL("Could not initialize 
+                            library: %s\n", TTF_GetError());
 
     // Init OpenGL
     GLenum e;
